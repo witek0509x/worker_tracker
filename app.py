@@ -70,6 +70,8 @@ class StatusLog(db.Model):
     status = db.Column(db.String(20), nullable=False)  # arrived, completed
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     notes = db.Column(db.Text, nullable=True)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
     
     job = db.relationship('ServiceJob', backref=db.backref('logs', lazy=True))
     
@@ -234,7 +236,9 @@ def log_arrival(job_id):
     if job.status == 'assigned':
         job.status = 'arrived'
         job.arrived_at = datetime.utcnow()
-        log = StatusLog(job_id=job_id, status='arrived', notes=notes)
+        log = StatusLog(job_id=job_id, status='arrived', notes=notes,
+                        latitude=request.form.get('lat', type=float),
+                        longitude=request.form.get('lon', type=float))
         db.session.add(log)
         db.session.commit()
         flash('Przyjazd został zapisany.', 'success')
@@ -255,7 +259,9 @@ def log_completion(job_id):
     if job.status == 'arrived':
         job.status = 'completed'
         job.completed_at = datetime.utcnow()
-        log = StatusLog(job_id=job_id, status='completed', notes=notes)
+        log = StatusLog(job_id=job_id, status='completed', notes=notes,
+                        latitude=request.form.get('lat', type=float),
+                        longitude=request.form.get('lon', type=float))
         db.session.add(log)
         db.session.commit()
         flash('Zlecenie zakończone pomyślnie!', 'success')
@@ -285,7 +291,9 @@ def api_log_status(job_id):
     if status == 'arrived' and job.status == 'assigned':
         job.status = 'arrived'
         job.arrived_at = datetime.utcnow()
-        log = StatusLog(job_id=job_id, status='arrived', notes=notes)
+        lat = data.get('lat')
+        lon = data.get('lon')
+        log = StatusLog(job_id=job_id, status='arrived', notes=notes, latitude=lat, longitude=lon)
         db.session.add(log)
         db.session.commit()
         return jsonify({'success': True, 'message': 'Arrival logged'})
@@ -293,7 +301,9 @@ def api_log_status(job_id):
     elif status == 'completed' and job.status == 'arrived':
         job.status = 'completed'
         job.completed_at = datetime.utcnow()
-        log = StatusLog(job_id=job_id, status='completed', notes=notes)
+        lat = data.get('lat')
+        lon = data.get('lon')
+        log = StatusLog(job_id=job_id, status='completed', notes=notes, latitude=lat, longitude=lon)
         db.session.add(log)
         db.session.commit()
         return jsonify({'success': True, 'message': 'Completion logged'})

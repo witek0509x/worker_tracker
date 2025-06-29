@@ -98,14 +98,16 @@
                         <i class="fas fa-info-circle"></i>
                         Worker needs to log arrival at the location.
                     </div>
-                    <form method="POST" action="{{ url_for('log_arrival', job_id=job.id) }}">
+                    <form method="POST" action="{{ url_for('log_arrival', job_id=job.id) }}" id="arrivalForm">
+                        <input type="hidden" name="lat" id="arrivalLat">
+                        <input type="hidden" name="lon" id="arrivalLon">
                         <div class="mb-3">
-                            <label for="arrival_notes" class="form-label">Notes (Optional)</label>
+                            <label for="arrival_notes" class="form-label">Notatki (opcjonalnie)</label>
                             <textarea class="form-control" id="arrival_notes" name="notes" rows="3" 
-                                      placeholder="Any observations upon arrival..."></textarea>
+                                      placeholder="Uwagi po przybyciu..."></textarea>
                         </div>
                         <button type="submit" class="btn btn-info w-100">
-                            <i class="fas fa-map-marker-alt"></i> Log Arrival
+                            <i class="fas fa-map-marker-alt"></i> Zarejestruj Przyjazd
                         </button>
                     </form>
 
@@ -114,14 +116,16 @@
                         <i class="fas fa-clock"></i>
                         Worker has arrived. Log completion when work is finished.
                     </div>
-                    <form method="POST" action="{{ url_for('log_completion', job_id=job.id) }}">
+                    <form method="POST" action="{{ url_for('log_completion', job_id=job.id) }}" id="completionForm">
+                        <input type="hidden" name="lat" id="completionLat">
+                        <input type="hidden" name="lon" id="completionLon">
                         <div class="mb-3">
-                            <label for="completion_notes" class="form-label">Completion Notes (Optional)</label>
+                            <label for="completion_notes" class="form-label">Notatki zakończenia (opcjonalnie)</label>
                             <textarea class="form-control" id="completion_notes" name="notes" rows="3" 
-                                      placeholder="Work completed, any additional notes..."></textarea>
+                                      placeholder="Opis wykonanych prac..."></textarea>
                         </div>
                         <button type="submit" class="btn btn-success w-100">
-                            <i class="fas fa-check-circle"></i> Mark as Completed
+                            <i class="fas fa-check-circle"></i> Oznacz jako Zakończone
                         </button>
                     </form>
 
@@ -145,4 +149,28 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
+
+{% block extra_js %}{% endblock %}
+<script>
+function attachGeo(formId, latId, lonId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    form.addEventListener('submit', function(ev) {
+        const latInput = document.getElementById(latId);
+        if (latInput && !latInput.value && navigator.geolocation) {
+            ev.preventDefault();
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                latInput.value = pos.coords.latitude;
+                document.getElementById(lonId).value = pos.coords.longitude;
+                form.submit();
+            }, function(err) {
+                // User denied or error – submit without coords
+                form.submit();
+            }, {enableHighAccuracy:true, timeout:5000});
+        }
+    });
+}
+attachGeo('arrivalForm', 'arrivalLat', 'arrivalLon');
+attachGeo('completionForm', 'completionLat', 'completionLon');
+</script> 
