@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Panel{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1><i class="fas fa-tachometer-alt"></i> Service Jobs Dashboard</h1>
+    <h1><i class="fas fa-tachometer-alt"></i> Panel Zleceń</h1>
     <a href="{{ url_for('add_job') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> New Service Job
+        <i class="fas fa-plus"></i> Nowe Zlecenie
     </a>
 </div>
 
@@ -18,19 +18,19 @@
                     <h6 class="mb-0">{{ job.title }}</h6>
                     <span class="badge status-badge status-{{ job.status }}">
                         {% if job.status == 'assigned' %}
-                            <i class="fas fa-clock"></i> Assigned
+                            <i class="fas fa-clock"></i> Przydzielone
                         {% elif job.status == 'arrived' %}
-                            <i class="fas fa-map-marker-alt"></i> Arrived
+                            <i class="fas fa-map-marker-alt"></i> W trakcie
                         {% elif job.status == 'completed' %}
-                            <i class="fas fa-check"></i> Completed
+                            <i class="fas fa-check"></i> Zakończone
                         {% endif %}
                     </span>
                 </div>
                 <div class="card-body">
                     <p class="card-text">
-                        <strong><i class="fas fa-map-marker-alt"></i> Location:</strong> {{ job.location }}<br>
-                        <strong><i class="fas fa-user"></i> Worker:</strong> {{ job.worker.name }}<br>
-                        <strong><i class="fas fa-calendar"></i> Created:</strong> {{ job.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        <strong><i class="fas fa-map-marker-alt"></i> Lokalizacja:</strong> {{ job.location }}<br>
+                        <strong><i class="fas fa-user"></i> Pracownik:</strong> {{ job.worker.name }}<br>
+                        <strong><i class="fas fa-calendar"></i> Utworzono:</strong> {{ job.created_at.strftime('%Y-%m-%d %H:%M') }}
                     </p>
                     {% if job.description %}
                         <p class="card-text text-muted">{{ job.description[:100] }}{% if job.description|length > 100 %}...{% endif %}</p>
@@ -39,10 +39,10 @@
                 <div class="card-footer">
                     <div class="d-flex justify-content-between">
                         <a href="{{ url_for('job_detail', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-eye"></i> View Details
+                            <i class="fas fa-eye"></i> Szczegóły
                         </a>
                         <a href="{{ url_for('worker_dashboard', worker_id=job.worker.id) }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-user"></i> Worker Dashboard
+                            <i class="fas fa-user"></i> Panel Pracownika
                         </a>
                     </div>
                 </div>
@@ -53,10 +53,10 @@
 {% else %}
     <div class="text-center py-5">
         <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-        <h3 class="text-muted">No service jobs yet</h3>
-        <p class="text-muted">Create your first service job to get started.</p>
+        <h3 class="text-muted">Brak zleceń</h3>
+        <p class="text-muted">Utwórz pierwsze zlecenie, aby rozpocząć.</p>
         <a href="{{ url_for('add_job') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Create First Job
+            <i class="fas fa-plus"></i> Utwórz Pierwsze Zlecenie
         </a>
     </div>
 {% endif %}

@@ -1,24 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Add Service Job{% endblock %}
+{% block title %}Dodaj Zlecenie{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h4><i class="fas fa-plus"></i> Create New Service Job</h4>
+                <h4><i class="fas fa-plus"></i> Utwórz Nowe Zlecenie</h4>
             </div>
             <div class="card-body">
                 {% if not workers %}
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle"></i>
-                        No workers available. You need to <a href="{{ url_for('add_worker') }}">add a worker</a> first.
+                        Brak pracowników. Musisz <a href="{{ url_for('add_worker') }}">dodać pracownika</a> najpierw.
                     </div>
                 {% else %}
                     <form method="POST">
                         <div class="mb-3">
                             <label for="title" class="form-label">
-                                <i class="fas fa-clipboard"></i> Job Title *
+                                <i class="fas fa-clipboard"></i> Tytuł Zlecenia *
                             </label>
                             <input type="text" class="form-control" id="title" name="title" required 
                                    placeholder="e.g., Plumbing repair, AC maintenance, etc.">
@@ -26,7 +26,7 @@
                         
                         <div class="mb-3">
                             <label for="description" class="form-label">
-                                <i class="fas fa-file-alt"></i> Description
+                                <i class="fas fa-file-alt"></i> Opis
                             </label>
                             <textarea class="form-control" id="description" name="description" rows="3"
                                       placeholder="Detailed description of the work to be done..."></textarea>
@@ -34,7 +34,7 @@
                         
                         <div class="mb-3">
                             <label for="location" class="form-label">
-                                <i class="fas fa-map-marker-alt"></i> Location *
+                                <i class="fas fa-map-marker-alt"></i> Lokalizacja *
                             </label>
                             <input type="text" class="form-control" id="location" name="location" required
                                    placeholder="Street address, building name, or location description">
@@ -42,7 +42,7 @@
                         
                         <div class="mb-3">
                             <label for="worker_id" class="form-label">
-                                <i class="fas fa-user"></i> Assign Worker *
+                                <i class="fas fa-user"></i> Przydziel Pracownika *
                             </label>
                             <select class="form-control" id="worker_id" name="worker_id" required>
                                 <option value="">Select a worker...</option>
@@ -54,10 +54,10 @@
                         
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{{ url_for('index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancel
+                                <i class="fas fa-times"></i> Anuluj
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Create Job
+                                <i class="fas fa-save"></i> Utwórz Zlecenie
                             </button>
                         </div>
                     </form>

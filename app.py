@@ -97,7 +97,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            flash('Logged in successfully.', 'success')
+            flash('Zalogowano pomyślnie.', 'success')
             next_page = request.args.get('next')
             if next_page:
                 return redirect(next_page)
@@ -106,14 +106,14 @@ def login():
             else:
                 return redirect(url_for('worker_dashboard', worker_id=user.worker.id))
         else:
-            flash('Invalid username or password.', 'error')
+            flash('Nieprawidłowa nazwa użytkownika lub hasło.', 'error')
     return render_template('login.html')
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    flash('Logged out successfully.', 'success')
+    flash('Wylogowano pomyślnie.', 'success')
     return redirect(url_for('login'))
 
 # Updated index route to handle role-based redirection
@@ -129,7 +129,7 @@ def index():
     elif current_user.is_worker and current_user.worker:
         return redirect(url_for('worker_dashboard', worker_id=current_user.worker.id))
     else:
-        flash('Unauthorized access.', 'error')
+        flash('Nieautoryzowany dostęp.', 'error')
         return redirect(url_for('login'))
 
 # Protect admin-only routes
@@ -137,7 +137,7 @@ def index():
 @login_required
 def workers():
     if not current_user.is_admin:
-        flash('Access denied.', 'error')
+        flash('Dostęp zabroniony.', 'error')
         return redirect(url_for('index'))
     workers = Worker.query.all()
     return render_template('workers.html', workers=workers)
@@ -146,7 +146,7 @@ def workers():
 @login_required
 def add_worker():
     if not current_user.is_admin:
-        flash('Access denied.', 'error')
+        flash('Dostęp zabroniony.', 'error')
         return redirect(url_for('index'))
 
     if request.method == 'POST':
@@ -158,10 +158,10 @@ def add_worker():
 
         # Check duplicates
         if User.query.filter_by(username=username).first():
-            flash('Username already exists.', 'error')
+            flash('Nazwa użytkownika już istnieje.', 'error')
             return redirect(url_for('add_worker'))
         if User.query.filter_by(email=email).first():
-            flash('Email already exists.', 'error')
+            flash('Adres e-mail już istnieje.', 'error')
             return redirect(url_for('add_worker'))
 
         # Create user account for worker
@@ -175,7 +175,7 @@ def add_worker():
         db.session.add(worker)
         db.session.commit()
 
-        flash(f'Worker added successfully! Temporary password: {password}', 'success')
+        flash(f'Pracownik dodany! Tymczasowe hasło: {password}', 'success')
         return redirect(url_for('workers'))
 
     return render_template('add_worker.html')
@@ -185,7 +185,7 @@ def add_worker():
 @login_required
 def add_job():
     if not current_user.is_admin:
-        flash('Access denied.', 'error')
+        flash('Dostęp zabroniony.', 'error')
         return redirect(url_for('index'))
 
     if request.method == 'POST':
@@ -198,7 +198,7 @@ def add_job():
         db.session.add(job)
         db.session.commit()
         
-        flash('Service job created successfully!', 'success')
+        flash('Zlecenie utworzono pomyślnie!', 'success')
         return redirect(url_for('index'))
     
     workers = Worker.query.all()
@@ -210,10 +210,10 @@ def add_job():
 def worker_dashboard(worker_id):
     if current_user.is_worker:
         if current_user.worker and current_user.worker.id != worker_id:
-            flash('Access denied.', 'error')
+            flash('Dostęp zabroniony.', 'error')
             return redirect(url_for('index'))
     elif not current_user.is_admin:
-        flash('Access denied.', 'error')
+        flash('Dostęp zabroniony.', 'error')
         return redirect(url_for('index'))
 
     worker = Worker.query.get_or_404(worker_id)
@@ -227,7 +227,7 @@ def log_arrival(job_id):
     job = ServiceJob.query.get_or_404(job_id)
     # Check permission
     if current_user.is_worker and (not current_user.worker or job.worker_id != current_user.worker.id):
-        flash('Access denied.', 'error')
+        flash('Dostęp zabroniony.', 'error')
         return redirect(url_for('index'))
     
     notes = request.form.get('notes', '')
@@ -237,9 +237,9 @@ def log_arrival(job_id):
         log = StatusLog(job_id=job_id, status='arrived', notes=notes)
         db.session.add(log)
         db.session.commit()
-        flash('Arrival logged successfully!', 'success')
+        flash('Przyjazd został zapisany.', 'success')
     else:
-        flash('Job status cannot be updated to arrived.', 'error')
+        flash('Status zlecenia nie pozwala na oznaczenie przyjazdu.', 'error')
     return redirect(url_for('job_detail', job_id=job_id))
 
 @app.route('/log_completion/<int:job_id>', methods=['POST'])
@@ -248,7 +248,7 @@ def log_completion(job_id):
     job = ServiceJob.query.get_or_404(job_id)
     # Check permission
     if current_user.is_worker and (not current_user.worker or job.worker_id != current_user.worker.id):
-        flash('Access denied.', 'error')
+        flash('Dostęp zabroniony.', 'error')
         return redirect(url_for('index'))
 
     notes = request.form.get('notes', '')
@@ -258,9 +258,9 @@ def log_completion(job_id):
         log = StatusLog(job_id=job_id, status='completed', notes=notes)
         db.session.add(log)
         db.session.commit()
-        flash('Completion logged successfully!', 'success')
+        flash('Zlecenie zakończone pomyślnie!', 'success')
     else:
-        flash('Job must be in "arrived" status to complete.', 'error')
+        flash('Aby zakończyć, status musi być "W trakcie".', 'error')
     return redirect(url_for('job_detail', job_id=job_id))
 
 # API endpoints for mobile/simple interface
@@ -307,7 +307,7 @@ def job_detail(job_id):
     job = ServiceJob.query.get_or_404(job_id)
     # Permissions: worker assigned to job or admin
     if current_user.is_worker and (not current_user.worker or job.worker_id != current_user.worker.id):
-        flash('Access denied.', 'error')
+        flash('Dostęp zabroniony.', 'error')
         return redirect(url_for('index'))
     logs = StatusLog.query.filter_by(job_id=job_id).order_by(StatusLog.timestamp.desc()).all()
     return render_template('job_detail.html', job=job, logs=logs)
