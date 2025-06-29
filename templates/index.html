@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-tachometer-alt"></i> Service Jobs Dashboard</h1>
+    <a href="{{ url_for('add_job') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> New Service Job
+    </a>
+</div>
+
+{% if jobs %}
+    <div class="row">
+        {% for job in jobs %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{{ job.title }}</h6>
+                    <span class="badge status-badge status-{{ job.status }}">
+                        {% if job.status == 'assigned' %}
+                            <i class="fas fa-clock"></i> Assigned
+                        {% elif job.status == 'arrived' %}
+                            <i class="fas fa-map-marker-alt"></i> Arrived
+                        {% elif job.status == 'completed' %}
+                            <i class="fas fa-check"></i> Completed
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <strong><i class="fas fa-map-marker-alt"></i> Location:</strong> {{ job.location }}<br>
+                        <strong><i class="fas fa-user"></i> Worker:</strong> {{ job.worker.name }}<br>
+                        <strong><i class="fas fa-calendar"></i> Created:</strong> {{ job.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </p>
+                    {% if job.description %}
+                        <p class="card-text text-muted">{{ job.description[:100] }}{% if job.description|length > 100 %}...{% endif %}</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('job_detail', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a href="{{ url_for('worker_dashboard', worker_id=job.worker.id) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-user"></i> Worker Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+        <h3 class="text-muted">No service jobs yet</h3>
+        <p class="text-muted">Create your first service job to get started.</p>
+        <a href="{{ url_for('add_job') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create First Job
+        </a>
+    </div>
+{% endif %}
+{% endblock %} 

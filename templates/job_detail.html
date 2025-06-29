@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Job Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <!-- Job Information -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="fas fa-clipboard-check"></i> {{ job.title }}</h4>
+                <span class="badge status-badge status-{{ job.status }}">
+                    {% if job.status == 'assigned' %}
+                        <i class="fas fa-clock"></i> Assigned
+                    {% elif job.status == 'arrived' %}
+                        <i class="fas fa-map-marker-alt"></i> Worker Arrived
+                    {% elif job.status == 'completed' %}
+                        <i class="fas fa-check-circle"></i> Completed
+                    {% endif %}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-map-marker-alt"></i> Location:</strong><br>{{ job.location }}</p>
+                        <p><strong><i class="fas fa-user"></i> Assigned Worker:</strong><br>{{ job.worker.name }}</p>
+                        <p><strong><i class="fas fa-envelope"></i> Worker Email:</strong><br>{{ job.worker.email }}</p>
+                        {% if job.worker.phone %}
+                            <p><strong><i class="fas fa-phone"></i> Worker Phone:</strong><br>{{ job.worker.phone }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-calendar-plus"></i> Created:</strong><br>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        {% if job.arrived_at %}
+                            <p><strong><i class="fas fa-map-marker-alt"></i> Arrived:</strong><br>{{ job.arrived_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        {% endif %}
+                        {% if job.completed_at %}
+                            <p><strong><i class="fas fa-check-circle"></i> Completed:</strong><br>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if job.description %}
+                    <hr>
+                    <p><strong><i class="fas fa-file-alt"></i> Description:</strong></p>
+                    <p class="text-muted">{{ job.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Status Log -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-history"></i> Activity Log</h5>
+            </div>
+            <div class="card-body">
+                {% if logs %}
+                    <div class="timeline">
+                        {% for log in logs %}
+                            <div class="timeline-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="badge 
+                                        {% if log.status == 'arrived' %}bg-info{% elif log.status == 'completed' %}bg-success{% endif %} 
+                                        me-3 mt-1">
+                                        {% if log.status == 'arrived' %}
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        {% elif log.status == 'completed' %}
+                                            <i class="fas fa-check"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {% if log.status == 'arrived' %}Worker Arrived{% elif log.status == 'completed' %}Work Completed{% endif %}
+                                        </h6>
+                                        <small class="text-muted">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                                        {% if log.notes %}
+                                            <p class="mt-2 mb-0">{{ log.notes }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No activity logged yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Panel -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-tasks"></i> Worker Actions</h5>
+            </div>
+            <div class="card-body">
+                {% if job.status == 'assigned' %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Worker needs to log arrival at the location.
+                    </div>
+                    <form method="POST" action="{{ url_for('log_arrival', job_id=job.id) }}">
+                        <div class="mb-3">
+                            <label for="arrival_notes" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="arrival_notes" name="notes" rows="3" 
+                                      placeholder="Any observations upon arrival..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-info w-100">
+                            <i class="fas fa-map-marker-alt"></i> Log Arrival
+                        </button>
+                    </form>
+
+                {% elif job.status == 'arrived' %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-clock"></i>
+                        Worker has arrived. Log completion when work is finished.
+                    </div>
+                    <form method="POST" action="{{ url_for('log_completion', job_id=job.id) }}">
+                        <div class="mb-3">
+                            <label for="completion_notes" class="form-label">Completion Notes (Optional)</label>
+                            <textarea class="form-control" id="completion_notes" name="notes" rows="3" 
+                                      placeholder="Work completed, any additional notes..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-check-circle"></i> Mark as Completed
+                        </button>
+                    </form>
+
+                {% elif job.status == 'completed' %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        This job has been completed successfully!
+                    </div>
+                {% endif %}
+
+                <hr>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                    <a href="{{ url_for('worker_dashboard', worker_id=job.worker.id) }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-user"></i> Worker Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

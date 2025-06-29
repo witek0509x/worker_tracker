@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}{{ worker.name }} Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-user-circle"></i> {{ worker.name }} Dashboard</h1>
+    <a href="{{ url_for('workers') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left"></i> Back to Workers
+    </a>
+</div>
+
+<!-- Worker Info -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <h5><i class="fas fa-user"></i> Worker Information</h5>
+                        <p><strong>Email:</strong> {{ worker.email }}</p>
+                        {% if worker.phone %}
+                            <p><strong>Phone:</strong> {{ worker.phone }}</p>
+                        {% endif %}
+                        <p><strong>Joined:</strong> {{ worker.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                    <div class="col-md-9">
+                        <h5><i class="fas fa-chart-bar"></i> Job Statistics</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h3 class="text-warning">{{ jobs|selectattr('status', 'equalto', 'assigned')|list|length }}</h3>
+                                    <small>Assigned</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h3 class="text-info">{{ jobs|selectattr('status', 'equalto', 'arrived')|list|length }}</h3>
+                                    <small>In Progress</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h3 class="text-success">{{ jobs|selectattr('status', 'equalto', 'completed')|list|length }}</h3>
+                                    <small>Completed</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h3 class="text-primary">{{ jobs|length }}</h3>
+                                    <small>Total Jobs</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Jobs List -->
+<h3><i class="fas fa-tasks"></i> Assigned Jobs</h3>
+
+{% if jobs %}
+    <!-- Filter Tabs -->
+    <ul class="nav nav-tabs mb-3" id="jobTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button">
+                All Jobs ({{ jobs|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="assigned-tab" data-bs-toggle="tab" data-bs-target="#assigned" type="button">
+                Assigned ({{ jobs|selectattr('status', 'equalto', 'assigned')|list|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="arrived-tab" data-bs-toggle="tab" data-bs-target="#arrived" type="button">
+                In Progress ({{ jobs|selectattr('status', 'equalto', 'arrived')|list|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button">
+                Completed ({{ jobs|selectattr('status', 'equalto', 'completed')|list|length }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="jobTabsContent">
+        <!-- All Jobs -->
+        <div class="tab-pane fade show active" id="all" role="tabpanel">
+            <div class="row">
+                {% for job in jobs %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">{{ job.title }}</h6>
+                            <span class="badge status-badge status-{{ job.status }}">
+                                {% if job.status == 'assigned' %}
+                                    <i class="fas fa-clock"></i> Assigned
+                                {% elif job.status == 'arrived' %}
+                                    <i class="fas fa-map-marker-alt"></i> In Progress
+                                {% elif job.status == 'completed' %}
+                                    <i class="fas fa-check"></i> Completed
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <strong><i class="fas fa-map-marker-alt"></i> Location:</strong> {{ job.location }}<br>
+                                <strong><i class="fas fa-calendar"></i> Created:</strong> {{ job.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                {% if job.arrived_at and job.status in ['arrived', 'completed'] %}
+                                    <br><strong><i class="fas fa-clock"></i> Arrived:</strong> {{ job.arrived_at.strftime('%Y-%m-%d %H:%M') }}
+                                {% endif %}
+                                {% if job.completed_at and job.status == 'completed' %}
+                                    <br><strong><i class="fas fa-check-circle"></i> Completed:</strong> {{ job.completed_at.strftime('%Y-%m-%d %H:%M') }}
+                                {% endif %}
+                            </p>
+                            {% if job.description %}
+                                <p class="card-text text-muted">{{ job.description[:100] }}{% if job.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('job_detail', job_id=job.id) }}" class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Assigned Jobs -->
+        <div class="tab-pane fade" id="assigned" role="tabpanel">
+            <div class="row">
+                {% for job in jobs %}
+                {% if job.status == 'assigned' %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0">{{ job.title }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <strong><i class="fas fa-map-marker-alt"></i> Location:</strong> {{ job.location }}<br>
+                                <strong><i class="fas fa-calendar"></i> Created:</strong> {{ job.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </p>
+                            {% if job.description %}
+                                <p class="card-text text-muted">{{ job.description[:100] }}{% if job.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('job_detail', job_id=job.id) }}" class="btn btn-warning btn-sm w-100">
+                                <i class="fas fa-map-marker-alt"></i> Log Arrival
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- In Progress Jobs -->
+        <div class="tab-pane fade" id="arrived" role="tabpanel">
+            <div class="row">
+                {% for job in jobs %}
+                {% if job.status == 'arrived' %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 border-info">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">{{ job.title }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <strong><i class="fas fa-map-marker-alt"></i> Location:</strong> {{ job.location }}<br>
+                                <strong><i class="fas fa-clock"></i> Arrived:</strong> {{ job.arrived_at.strftime('%Y-%m-%d %H:%M') }}
+                            </p>
+                            {% if job.description %}
+                                <p class="card-text text-muted">{{ job.description[:100] }}{% if job.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('job_detail', job_id=job.id) }}" class="btn btn-info btn-sm w-100">
+                                <i class="fas fa-check-circle"></i> Mark Complete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Completed Jobs -->
+        <div class="tab-pane fade" id="completed" role="tabpanel">
+            <div class="row">
+                {% for job in jobs %}
+                {% if job.status == 'completed' %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 border-success">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">{{ job.title }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <strong><i class="fas fa-map-marker-alt"></i> Location:</strong> {{ job.location }}<br>
+                                <strong><i class="fas fa-check-circle"></i> Completed:</strong> {{ job.completed_at.strftime('%Y-%m-%d %H:%M') }}
+                            </p>
+                            {% if job.description %}
+                                <p class="card-text text-muted">{{ job.description[:100] }}{% if job.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('job_detail', job_id=job.id) }}" class="btn btn-outline-success btn-sm w-100">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+        <h3 class="text-muted">No jobs assigned yet</h3>
+        <p class="text-muted">This worker has no assigned jobs.</p>
+        <a href="{{ url_for('add_job') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Job
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
